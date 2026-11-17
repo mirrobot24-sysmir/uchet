@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Учет товаров — 10 педагогов</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 15px;
+    background: #f0f4f8;
+    color: #333;
+  }
+  h1 {
+    text-align: center;
+    color: #2c5282;
+    margin: 10px 0 20px;
+    font-size: 24px;
+  }
+  .city-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .city-bar input {
+    padding: 8px 12px;
+    border: 2px solid #4299e1;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    outline: none;
+    width: 350px;
+  }
+  .city-bar input:focus { border-color: #2b6cb0; box-shadow: 0 0 0 3px rgba(66,153,225,0.2); }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #4299e1;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover { background: #2b6cb0; }
+  button.danger { background: #e53e3e; }
+  button.danger:hover { background: #c53030; }
+  button.success { background: #38a169; }
+  button.success:hover { background: #2f855a; }
+  button.export { background: #805ad5; }
+  button.export:hover { background: #6b46c1; }
+
+  .teacher-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    margin-bottom: 15px;
+    background: #2c5282;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .teacher-tab {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #4a7ab5;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    border: none;
+    font-weight: 500;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .teacher-tab.active {
+    background: #fbbf24;
+    color: #2c5282;
+    font-weight: bold;
+  }
+  .teacher-tab:hover:not(.active) { background: #5b8bc5; }
+  .teacher-tab.global-tab { background: #059669; }
+  .teacher-tab.global-tab.active { background: #10b981; color: white; }
+  .teacher-tab.global-tab:hover:not(.active) { background: #047857; }
+
+  .month-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    margin-bottom: 15px;
+    background: white;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .month-tab {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: #edf2f7;
+    color: #4a5568;
+    cursor: pointer;
+    font-size: 13px;
+    border: none;
+    font-weight: 500;
+  }
+  .month-tab.active {
+    background: #2c5282;
+    color: white;
+  }
+  .month-tab:hover:not(.active) { background: #cbd5e0; }
+  .month-tab.summary-tab { background: #fef3c7; color: #92400e; }
+  .month-tab.summary-tab.active { background: #d97706; color: white; }
+
+  .month-panel {
+    display: none;
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow-x: auto;
+  }
+  .month-panel.active { display: block; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    min-width: 2600px;
+  }
+  th, td {
+    border: 1px solid #555;
+    padding: 3px 2px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  
+  .th-green { background: #70ad47; color: white; font-weight: bold; font-size: 14px; }
+  .th-cyan { background: #00b0f0; color: #000; font-weight: bold; }
+  
+  .th-toy { 
+    background: #e2efda; 
+    color: #000; 
+    font-weight: bold; 
+    min-width: 35px; 
+    max-width: 35px;
+    height: 180px;
+    padding: 0;
+    position: relative;
+  }
+  .th-toy div {
+    width: 100%;
+    height: 100%;
+    font-weight: bold;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .th-orange { background: #ed7d31; color: white; font-weight: bold; font-size: 16px; }
+  .th-peach { 
+    background: #f4b084; 
+    color: #000; 
+    font-weight: bold; 
+    min-width: 35px; 
+    max-width: 35px;
+    height: 150px;
+    padding: 0;
+  }
+  .th-peach div {
+    width: 100%;
+    height: 100%;
+    font-weight: bold;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .th-blue { background: #00b0f0; color: white; font-weight: bold; }
+  .th-purple { background: #6b46c1; color: white; font-weight: bold; font-size: 14px; }
+  
+  .row-label { background: #fff2cc; font-weight: bold; text-align: right; padding-right: 8px; white-space: nowrap; }
+  .row-label-green { background: #a9d08e; font-weight: bold; text-align: right; padding-right: 8px; white-space: nowrap;}
+  .row-label-orange { background: #ed7d31; color: white; font-weight: bold; text-align: right; padding-right: 8px; }
+  
+  .cell-blue { background: #c6e0b4; }
+  .cell-cyan { background: #b3e5fc; }
+  .cell-white { background: #fff; }
+  .cell-orange { background: #f4b183; font-weight: bold; }
+  .cell-locked {
+    background: #f1f5f9;
+    color: #1e293b;
+    font-weight: bold;
+    cursor: not-allowed;
+    user-select: none;
+  }
+  
+  .cell-protected {
+    background: #c6e0b4;
+    cursor: pointer;
+    font-weight: bold;
+    color: #1e293b;
+    user-select: none;
+  }
+  .cell-protected:hover {
+    background: #b0d49a;
+    box-shadow: inset 0 0 0 2px #f59e0b;
+  }
+
+  .add-row-btn {
+    display: inline-block;
+    margin: 8px 0;
+    padding: 6px 14px;
+    background: #38a169;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .add-row-btn:hover { background: #2f855a; }
+  .add-row-btn.orange { background: #dd6b20; }
+  .add-row-btn.orange:hover { background: #c05621; }
+  
+  .delete-row-btn {
+    background: #e53e3e;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 11px;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .delete-row-btn:hover { background: #c53030; }
+  .delete-row-btn:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+  }
+  
+  .toolbar-row {
+    text-align: center;
+    padding: 5px;
+    background: #f7fafc;
+    border-radius: 4px;
+    margin: 5px 0;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 12px;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"]:focus { background: #fffde7; box-shadow: inset 0 0 0 2px #f59e0b; }
+
+  .name-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding-left: 5px;
+    font-size: 13px;
+    outline: none;
+  }
+  .name-input:focus { background: #fffde7; }
+
+  .date-col { background: #00b0f0; color: white; font-weight: bold; }
+  
+  .teacher-input { 
+    width: 100%; 
+    font-size: 15px; 
+    font-weight: bold; 
+    padding: 8px 12px; 
+    border: 2px dashed #4299e1; 
+    border-radius: 6px;
+    background: #ffffff;
+    outline: none;
+    color: #2c5282;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-align: center;
+  }
+  
+  .col-name { width: 220px; min-width: 220px; max-width: 220px; }
+  .col-date { width: 100px; min-width: 100px; max-width: 100px; }
+  .col-del { width: 40px; min-width: 40px; max-width: 40px; }
+
+  .save-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #38a169;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  .save-indicator.show { opacity: 1; }
+
+  .summary-wrap { padding: 10px; }
+  .summary-wrap h2 {
+    text-align: center;
+    color: #92400e;
+    margin: 5px 0 15px;
+    font-size: 20px;
+  }
+  .summary-wrap .period {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+  .summary-wrap table {
+    min-width: 900px;
+    font-size: 12px;
+    margin-bottom: 30px;
+  }
+  .summary-wrap th, .summary-wrap td {
+    padding: 6px 4px;
+  }
+  .summary-total-row td {
+    background: #fef3c7;
+    font-weight: bold;
+    font-size: 13px;
+    color: #92400e;
+  }
+  .summary-section-title {
+    color: #4a5568;
+    font-size: 17px;
+    margin: 20px 0 10px;
+    padding: 8px 12px;
+    background: #ebf8ff;
+    border-left: 4px solid #4299e1;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<h1>📦 Учет товаров — 10 педагогов</h1>
+
+<div class="city-bar">
+  <label for="cityInput">🏢 ООО:</label>
+  <input type="text" id="cityInput" placeholder="Введите название ООО..." onchange="saveCity(this.value)" oninput="stripNonDigits(this)">
+</div>
+
+<div class="toolbar">
+  <button class="export" onclick="exportBackup()">💾 Скачать резервную копию</button>
+  <button onclick="document.getElementById('importFile').click()">📂 Загрузить копию</button>
+  <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackup(event)">
+  <button class="success" onclick="exportCSV()">📥 Экспорт в Excel (CSV)</button>
+  <button onclick="printTable()">🖨️ Печать</button>
+  <button class="danger" onclick="confirmClearAll()">🗑️ Очистить всё</button>
+</div>
+
+<div class="teacher-tabs" id="teacherTabs"></div>
+<div class="month-tabs" id="monthTabs"></div>
+<div id="contentContainer"></div>
+<div id="saveIndicator" class="save-indicator">✅ Сохранено</div>
+
+<script>
+// ===== НАСТРОЙКИ =====
+const PRODUCT_COUNT = 33;
+const DEFAULT_PRODUCT_NAMES = [
+  "Ручка с логотипом", "Линейка", "Кружка", "Сумка для обуви", "Коврик для мыши",
+  "USB ФЛЕШКА", "Бутылка для воды", "Термокружка", "ПоверБанк", "Настольные часы",
+  "Портативная колонка", "Наушники", "USB-ЛАМПА", "Держатель для телефона", "Мышь беспроводная",
+  "Фитнес-браслет", "3d -ручка", "VR-очки", "Графический планшет", "Сертификат 200 койнов",
+  "Сертификат 400 койнов", "ЛАНЧ-БОКС", "RGB-коврик 350*250", "RGB-коврик 800*300 мм", "Геймпад",
+  "Беспроводное зарядное устройство", "Клавиатура-антистресс 4 кнопки", "Клавиатура-антистресс 9 кнопки", "Антистресс", "Рыба-пенал",
+  "3д-модели", "Запас 1", "Запас 2"
+];
+
+const DEFAULT_ARRIVAL_ROWS = 5;
+const DEFAULT_STUDENT_ROWS = 20;
+const MIN_ARRIVAL_ROWS = 1;
+const MIN_STUDENTS = 1;
+const TEACHER_COUNT = 10; // <-- 10 ПЕДАГОГОВ
+
+const MONTHS = [
+  { name: "Ноябрь 2026", short: "Ноя 2026", endDate: "30.11.2026" },
+  { name: "Декабрь 2026", short: "Дек 2026", endDate: "31.12.2026" },
+  { name: "Январь 2027", short: "Янв 2027", endDate: "31.01.2027" },
+  { name: "Февраль 2027", short: "Фев 2027", endDate: "28.02.2027" },
+  { name: "Март 2027", short: "Мар 2027", endDate: "31.03.2027" },
+  { name: "Апрель 2027", short: "Апр 2027", endDate: "30.04.2027" },
+  { name: "Май 2027", short: "Май 2027", endDate: "31.05.2027" },
+  { name: "Июнь 2027", short: "Июн 2027", endDate: "30.06.2027" },
+  { name: "Июль 2027", short: "Июл 2027", endDate: "31.07.2027" },
+  { name: "Август 2027", short: "Авг 2027", endDate: "31.08.2027" }
+];
+
+const STORAGE_KEY = "products_10_teachers_v1_nov";
+const CLEAR_PASSWORD = "1705";
+const EDIT_PASSWORD = "1705";
+
+let currentTeacher = 0;
+let currentMonth = 0;
+
+// ===== ДАННЫЕ =====
+let data = loadData();
+
+function createEmptyMonth() {
+  return {
+    arrivals: Array.from({ length: DEFAULT_ARRIVAL_ROWS }, () => ({
+      date: "",
+      items: Array(PRODUCT_COUNT).fill(0)
+    })),
+    start: Array(PRODUCT_COUNT).fill(0),
+    students: Array.from({ length: DEFAULT_STUDENT_ROWS }, () => ({
+      name: "",
+      date: "",
+      items: Array(PRODUCT_COUNT).fill(0)
+    }))
+  };
+}
+
+function createEmptyTeacher(idx) {
+  const months = {};
+  MONTHS.forEach(m => months[m.name] = createEmptyMonth());
+  return { name: `Педагог ${idx + 1}`, months: months };
+}
+
+function createEmptyData() {
+  const teachers = [];
+  for (let i = 0; i < TEACHER_COUNT; i++) {
+    teachers.push(createEmptyTeacher(i));
+  }
+  return {
+    productNames: DEFAULT_PRODUCT_NAMES.slice(),
+    teachers
+  };
+}
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.teachers && parsed.teachers.length === TEACHER_COUNT) {
+        if (!parsed.productNames || parsed.productNames.length !== PRODUCT_COUNT) {
+          parsed.productNames = DEFAULT_PRODUCT_NAMES.slice();
+        }
+        parsed.teachers.forEach((t, idx) => {
+          if (!t.name) t.name = `Педагог ${idx + 1}`;
+          if (!t.months) t.months = {};
+          MONTHS.forEach(m => {
+            if (!t.months[m.name] || !t.months[m.name].start || t.months[m.name].start.length !== PRODUCT_COUNT) {
+              t.months[m.name] = createEmptyMonth();
+            } else {
+              if (!t.months[m.name].arrivals || t.months[m.name].arrivals.length === 0) {
+                t.months[m.name].arrivals = [{ date: "", items: Array(PRODUCT_COUNT).fill(0) }];
+              }
+              if (!t.months[m.name].students || t.months[m.name].students.length === 0) {
+                t.months[m.name].students = [{ name: "", date: "", items: Array(PRODUCT_COUNT).fill(0) }];
+              }
+            }
+          });
+        });
+        return parsed;
+      }
+    }
+  } catch(e) { console.warn(e); }
+  return createEmptyData();
+}
+
+let saveTimeout;
+function saveData(showIndicator = true) {
+  try { 
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (showIndicator) {
+      const ind = document.getElementById("saveIndicator");
+      ind.classList.add("show");
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => ind.classList.remove("show"), 1200);
+    }
+  } 
+  catch(e) { 
+    console.error("Ошибка сохранения:", e);
+    alert("Не удалось сохранить данные! Скачайте резервную копию!");
+  }
+}
+
+function saveCity(val) { localStorage.setItem("products_city_10", val); }
+function loadCity() { return localStorage.getItem("products_city_10") || ""; }
+
+// ===== ЗАЩИТА ПАРОЛЕМ =====
+let editAccessUntil = 0;
+
+function requestEditPassword(actionDescription) {
+  if (Date.now() < editAccessUntil) return true;
+  const input = prompt(`🔒 Для изменения ${actionDescription} требуется пароль.\n\nВведите пароль:`);
+  if (input === null) return false;
+  if (input === EDIT_PASSWORD) {
+    editAccessUntil = Date.now() + 5 * 60 * 1000;
+    return true;
+  } else {
+    alert("❌ Неверный пароль! Изменение запрещено.");
+    return false;
+  }
+}
+
+// ===== ВАЛИДАЦИЯ =====
+function stripNonDigits(input) {
+  const original = input.value;
+  const cleaned = original.replace(/[0-9]/g, '');
+  if (cleaned !== original) input.value = cleaned;
+}
+
+function sanitizeNumber(input) {
+  let v = input.value.replace(/[^0-9]/g, '');
+  if (v.length > 6) v = v.slice(0, 6);
+  input.value = v;
+  return v;
+}
+
+function sanitizeDate(input) {
+  let v = input.value.replace(/[^0-9.]/g, '');
+  if (v.length > 10) v = v.slice(0, 10);
+  input.value = v;
+  return v;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ===== ПОДСЧЕТЫ =====
+function sumArrivals(monthData, prodIdx) {
+  return monthData.arrivals.reduce((sum, row) => sum + (Number(row.items[prodIdx]) || 0), 0);
+}
+function getExpenses(monthData, prodIdx) {
+  return monthData.students.reduce((sum, s) => sum + (Number(s.items[prodIdx]) || 0), 0);
+}
+
+function recalcAllStarts() {
+  data.teachers.forEach(t => {
+    for (let m = 1; m < MONTHS.length; m++) {
+      const prev = t.months[MONTHS[m-1].name];
+      const cur = t.months[MONTHS[m].name];
+      for (let i = 0; i < PRODUCT_COUNT; i++) {
+        cur.start[i] = (Number(prev.start[i]) || 0) + sumArrivals(prev, i) - getExpenses(prev, i);
+      }
+    }
+  });
+  saveData();
+}
+
+// ===== РЕНДЕРИНГ =====
+function renderTeacherTabs() {
+  const tabs = document.getElementById("teacherTabs");
+  tabs.innerHTML = "";
+  data.teachers.forEach((t, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "teacher-tab" + (currentTeacher === idx ? " active" : "");
+    btn.textContent = `${idx+1}. ${t.name}`;
+    btn.title = t.name;
+    btn.onclick = () => selectTeacher(idx);
+    tabs.appendChild(btn);
+  });
+  const globalBtn = document.createElement("button");
+  globalBtn.className = "teacher-tab global-tab" + (currentTeacher === -1 ? " active" : "");
+  globalBtn.textContent = "🌐 Сводка по всем педагогам";
+  globalBtn.onclick = () => selectTeacher(-1);
+  tabs.appendChild(globalBtn);
+}
+
+function renderMonthTabs() {
+  const tabs = document.getElementById("monthTabs");
+  tabs.innerHTML = "";
+  if (currentTeacher === -1) {
+    tabs.style.display = "none";
+    return;
+  }
+  tabs.style.display = "flex";
+  MONTHS.forEach((m, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "month-tab" + (currentMonth === idx ? " active" : "");
+    btn.textContent = m.short;
+    btn.onclick = () => selectMonth(idx);
+    tabs.appendChild(btn);
+  });
+  const sumBtn = document.createElement("button");
+  sumBtn.className = "month-tab summary-tab" + (currentMonth === -1 ? " active" : "");
+  sumBtn.textContent = "📊 Сводка педагога";
+  sumBtn.onclick = () => selectMonth(-1);
+  tabs.appendChild(sumBtn);
+}
+
+function selectTeacher(idx) {
+  currentTeacher = idx;
+  currentMonth = 0;
+  renderTeacherTabs();
+  renderMonthTabs();
+  renderContent();
+}
+
+function selectMonth(idx) {
+  currentMonth = idx;
+  renderMonthTabs();
+  renderContent();
+}
+
+function renderContent() {
+  const container = document.getElementById("contentContainer");
+  container.innerHTML = "";
+  
+  if (currentTeacher === -1) {
+    const div = document.createElement("div");
+    div.className = "month-panel active";
+    div.innerHTML = buildGlobalSummaryHTML();
+    container.appendChild(div);
+    return;
+  }
+  
+  const teacher = data.teachers[currentTeacher];
+  MONTHS.forEach((m, mi) => {
+    const panel = document.createElement("div");
+    panel.className = "month-panel" + (currentMonth === mi ? " active" : "");
+    panel.innerHTML = buildTableHTML(teacher, m, mi);
+    container.appendChild(panel);
+  });
+  
+  const sumPanel = document.createElement("div");
+  sumPanel.className = "month-panel" + (currentMonth === -1 ? " active" : "");
+  sumPanel.innerHTML = buildTeacherSummaryHTML(teacher);
+  container.appendChild(sumPanel);
+}
+
+function productNameCell(i) {
+  return `<div title="Кликните для редактирования (требуется пароль)"
+    onclick="protectedEditProductName(${i})">${escapeHtml(data.productNames[i] || '')}</div>`;
+}
+
+function buildTableHTML(teacher, monthInfo, mi) {
+  const monthName = monthInfo.name;
+  const p = teacher.months[monthName];
+  const totalCols = PRODUCT_COUNT + 4;
+  let html = `<table>`;
+
+  html += `<thead>
+    <tr>
+      <th class="th-cyan" style="text-align:left; padding:8px; white-space:nowrap;" colspan="2">👨‍🏫 Педагог:</th>
+      <th class="th-cyan" colspan="${PRODUCT_COUNT}" style="padding:8px;">
+        <input type="text" class="teacher-input" 
+               value="${escapeHtml(teacher.name)}" 
+               readonly
+               style="cursor:pointer;"
+               onclick="protectedEditTeacherName(${currentTeacher})"
+               title="Кликните для редактирования (требуется пароль)">
+      </th>
+      <th class="th-cyan date-col"></th>
+      <th class="th-cyan col-del"></th>
+    </tr>
+    <tr>
+      <th class="th-cyan" colspan="2" style="text-align:left; padding-left:10px;">Товары</th>
+      ${Array.from({length: PRODUCT_COUNT}, (_, i) => 
+        `<th class="th-toy">${productNameCell(i)}</th>`).join('')}
+      <th class="th-cyan date-col"></th>
+      <th class="th-cyan col-del">❌</th>
+    </tr>
+    <tr>
+      <th class="th-green" colspan="${totalCols}">Приход</th>
+    </tr>
+  </thead>
+  <tbody>`;
+
+  html += `<tr>
+    <td class="row-label-green" colspan="2">Остаток на ${getPrevDateStr(mi)}</td>`;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    const val = p.start[i];
+    if (mi === 0) {
+      html += `<td class="cell-protected" 
+        onclick="protectedEditStart(${currentTeacher}, '${monthName}', ${i})"
+        title="Кликните для ввода остатка (требуется пароль)">${val || ''}</td>`;
+    } else {
+      html += `<td class="cell-locked" title="Автоматически переносится из предыдущего месяца — изменить нельзя">${val}</td>`;
+    }
+  }
+  html += `<td class="cell-blue"></td><td class="cell-blue"></td></tr>`;
+
+  for (let r = 0; r < p.arrivals.length; r++) {
+    const row = p.arrivals[r];
+    const canDelete = p.arrivals.length > MIN_ARRIVAL_ROWS;
+    html += `<tr>
+      <td class="row-label" colspan="2" style="white-space:nowrap;">Приход ${r + 1}: Дата
+        <input type="text" value="${row.date || ''}" placeholder="дд.мм.гггг" 
+               onchange="updateArrivalDate(${currentTeacher}, '${monthName}', ${r}, this.value)"
+               oninput="sanitizeDate(this)"
+               style="width:100px; border:1px solid #999; border-radius:3px; padding:1px; font-size:11px; margin-left:5px;">
+      </td>`;
+    for (let i = 0; i < PRODUCT_COUNT; i++) {
+      html += `<td class="cell-blue"><input type="number" min="0" value="${row.items[i] || ''}" 
+        oninput="sanitizeNumber(this)"
+        onchange="updateArrivalItem(${currentTeacher}, '${monthName}', ${r}, ${i}, this.value)"></td>`;
+    }
+    html += `<td class="cell-blue"></td>`;
+    html += `<td class="cell-blue" style="padding:2px;">
+      <button class="delete-row-btn" ${canDelete ? '' : 'disabled'} 
+        onclick="deleteArrivalRow(${currentTeacher}, '${monthName}', ${r})"
+        title="${canDelete ? 'Удалить эту строку прихода (требуется пароль)' : 'Нельзя удалить последнюю строку'}">✖</button>
+    </td></tr>`;
+  }
+  
+  html += `<tr><td colspan="${totalCols}" class="toolbar-row">
+    <button class="add-row-btn" onclick="addArrivalRow(${currentTeacher}, '${monthName}')">➕ Добавить приход</button>
+  </td></tr>`;
+
+  html += `<tr>
+    <td class="row-label" colspan="2">Итого приход за месяц</td>`;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    html += `<td class="cell-locked">${sumArrivals(p, i)}</td>`;
+  }
+  html += `<td class="cell-blue"></td><td class="cell-blue"></td></tr>`;
+
+  html += `<tr>
+    <td class="row-label-green" colspan="2">Остаток на конец прихода</td>`;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    html += `<td class="cell-locked">${(Number(p.start[i]) || 0) + sumArrivals(p, i)}</td>`;
+  }
+  html += `<td class="cell-blue"></td><td class="cell-blue"></td></tr>`;
+
+  html += `<thead>
+    <tr>
+      <th class="th-orange" colspan="${totalCols}">РАСХОД</th>
+    </tr>
+    <tr>
+      <th class="th-peach col-name" style="text-align:left; vertical-align:bottom; padding:5px;">ФИО УЧЕНИКА</th>
+      <th class="th-peach date-col col-date" style="background:#00b0f0; color:white; vertical-align:bottom;">Дата<br>выдачи</th>
+      ${Array.from({length: PRODUCT_COUNT}, (_, i) => 
+        `<th class="th-peach">${productNameCell(i)}</th>`).join('')}
+      <th class="th-peach col-del" style="background:#ed7d31; color:white;">❌</th>
+    </tr>
+  </thead>
+  <tbody>`;
+
+  p.students.forEach((student, sIdx) => {
+    const canDelete = p.students.length > MIN_STUDENTS;
+    html += `<tr>
+      <td class="cell-white col-name" style="text-align:left; padding-left:5px; border-right:1px solid #555;">
+        <input type="text" class="name-input" placeholder="ФИО ученика..." 
+               value="${escapeHtml(student.name || '')}" 
+               onchange="updateStudentName(${currentTeacher}, '${monthName}', ${sIdx}, this.value)"
+               oninput="stripNonDigits(this)">
+      </td>
+      <td class="cell-cyan date-col col-date">
+        <input type="text" value="${student.date || ''}" placeholder="дд.мм.гггг" 
+               onchange="updateStudentDate(${currentTeacher}, '${monthName}', ${sIdx}, this.value)"
+               oninput="sanitizeDate(this)"
+               style="width:100%; border:none; background:transparent; font-size:11px; text-align:center;">
+      </td>`;
+    
+    student.items.forEach((qty, iIdx) => {
+      html += `<td class="cell-cyan"><input type="number" min="0" value="${qty || ''}" 
+        oninput="sanitizeNumber(this)"
+        onchange="updateStudentItem(${currentTeacher}, '${monthName}', ${sIdx}, ${iIdx}, this.value)"></td>`;
+    });
+    html += `<td class="cell-cyan" style="padding:2px;">
+      <button class="delete-row-btn" ${canDelete ? '' : 'disabled'} 
+        onclick="deleteStudentRow(${currentTeacher}, '${monthName}', ${sIdx})"
+        title="${canDelete ? 'Удалить этого ученика (требуется пароль)' : 'Нельзя удалить последнего ученика'}">✖</button>
+    </td></tr>`;
+  });
+
+  html += `<tr><td colspan="${totalCols}" class="toolbar-row">
+    <button class="add-row-btn orange" onclick="addStudentRow(${currentTeacher}, '${monthName}')">➕ Добавить ученика</button>
+  </td></tr>`;
+
+  html += `<tr>
+    <td class="row-label" colspan="2" style="background:#f8cbad; font-size:14px; text-align:left; padding-left:10px;">Расход за месяц</td>`;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    html += `<td class="cell-locked" style="background:#fde2c8;">${getExpenses(p, i)}</td>`;
+  }
+  html += `<td class="cell-orange"></td><td class="cell-orange"></td></tr>`;
+
+  html += `<tr>
+    <td class="row-label" colspan="2" style="background:#f8cbad; font-size:14px; text-align:left; padding-left:10px;">Остаток на ${getNextDateStr(mi)}</td>`;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    const end = (Number(p.start[i]) || 0) + sumArrivals(p, i) - getExpenses(p, i);
+    html += `<td class="cell-locked" style="background:#fde2c8;">${end}</td>`;
+  }
+  html += `<td class="cell-orange"></td><td class="cell-orange"></td></tr>`;
+
+  html += `</tbody></table>`;
+  return html;
+}
+
+function addArrivalRow(tIdx, monthName) {
+  data.teachers[tIdx].months[monthName].arrivals.push({
+    date: "",
+    items: Array(PRODUCT_COUNT).fill(0)
+  });
+  saveData();
+  renderContent();
+}
+
+function deleteArrivalRow(tIdx, monthName, rIdx) {
+  const arr = data.teachers[tIdx].months[monthName].arrivals;
+  if (arr.length <= MIN_ARRIVAL_ROWS) {
+    alert("Нельзя удалить последнюю строку прихода — должна остаться хотя бы одна.");
+    return;
+  }
+  if (!requestEditPassword("удаления строки прихода")) return;
+  
+  if (!confirm(`Удалить строку прихода №${rIdx+1}? Все введённые в неё данные будут потеряны.`)) return;
+  arr.splice(rIdx, 1);
+  recalcAllStarts();
+  renderContent();
+}
+
+function addStudentRow(tIdx, monthName) {
+  data.teachers[tIdx].months[monthName].students.push({
+    name: "",
+    date: "",
+    items: Array(PRODUCT_COUNT).fill(0)
+  });
+  saveData();
+  renderContent();
+}
+
+function deleteStudentRow(tIdx, monthName, sIdx) {
+  const arr = data.teachers[tIdx].months[monthName].students;
+  if (arr.length <= MIN_STUDENTS) {
+    alert("Нельзя удалить последнего ученика — должна остаться хотя бы одна строка.");
+    return;
+  }
+  if (!requestEditPassword("удаления строки ученика")) return;
+  
+  const name = arr[sIdx].name || `№${sIdx+1}`;
+  if (!confirm(`Удалить ученика "${name}"? Все введённые для него данные будут потеряны.`)) return;
+  arr.splice(sIdx, 1);
+  recalcAllStarts();
+  renderContent();
+}
+
+function protectedEditTeacherName(tIdx) {
+  if (!requestEditPassword("ФИО педагога")) return;
+  const current = data.teachers[tIdx].name;
+  const newName = prompt(`Введите новое ФИО педагога №${tIdx+1}:`, current);
+  if (newName !== null && newName.trim() !== "") {
+    const clean = newName.replace(/[0-9]/g, '').trim();
+    data.teachers[tIdx].name = clean || `Педагог ${tIdx + 1}`;
+    saveData();
+    renderTeacherTabs();
+    renderContent();
+  }
+}
+
+function protectedEditProductName(idx) {
+  if (!requestEditPassword("названия товара")) return;
+  const current = data.productNames[idx] || '';
+  const newName = prompt(`Введите новое название товара №${idx+1}:`, current);
+  if (newName !== null && newName.trim() !== "") {
+    data.productNames[idx] = newName.trim();
+    saveData();
+    renderContent();
+  }
+}
+
+function protectedEditStart(tIdx, monthName, prodIdx) {
+  if (!requestEditPassword("начального остатка в ноябре")) return;
+  const current = data.teachers[tIdx].months[monthName].start[prodIdx] || 0;
+  const productName = data.productNames[prodIdx] || `Товар ${prodIdx+1}`;
+  const input = prompt(`Введите остаток на начало ноября для товара:\n"${productName}"\n\nТолько цифры:`, current);
+  if (input !== null) {
+    const clean = input.replace(/[^0-9]/g, '');
+    const num = Math.max(0, Number(clean) || 0);
+    data.teachers[tIdx].months[monthName].start[prodIdx] = num;
+    recalcAllStarts();
+    renderContent();
+  }
+}
+
+function buildTeacherSummaryHTML(teacher) {
+  const totalArr = Array(PRODUCT_COUNT).fill(0);
+  const totalExp = Array(PRODUCT_COUNT).fill(0);
+  const lastMonth = teacher.months[MONTHS[MONTHS.length-1].name];
+  const finalStart = Array(PRODUCT_COUNT).fill(0).map((_, i) => 
+    (Number(lastMonth.start[i]) || 0) + sumArrivals(lastMonth, i) - getExpenses(lastMonth, i)
+  );
+
+  MONTHS.forEach(m => {
+    const p = teacher.months[m.name];
+    for (let i = 0; i < PRODUCT_COUNT; i++) {
+      totalArr[i] += sumArrivals(p, i);
+      totalExp[i] += getExpenses(p, i);
+    }
+  });
+
+  const grandA = totalArr.reduce((a,b)=>a+b,0);
+  const grandE = totalExp.reduce((a,b)=>a+b,0);
+  const grandS = finalStart.reduce((a,b)=>a+b,0);
+
+  let html = `<div class="summary-wrap">
+    <h2>📊 Сводка: ${escapeHtml(teacher.name)}</h2>
+    <div class="period">Период: ${MONTHS[0].name} — ${MONTHS[MONTHS.length-1].name}</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="th-purple" rowspan="2" style="min-width:200px;">Товар</th>
+          <th class="th-purple" colspan="2">Всего за период</th>
+          <th class="th-purple" rowspan="2">Остаток<br>на конец<br>(31.08.2027)</th>
+        </tr>
+        <tr>
+          <th class="th-green">Приход</th>
+          <th class="th-orange">Расход</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    html += `<tr>
+      <td style="text-align:left; padding-left:10px; font-weight:500;">${i+1}. ${escapeHtml(data.productNames[i])}</td>
+      <td class="cell-blue" style="font-weight:bold;">${totalArr[i]}</td>
+      <td class="cell-orange">${totalExp[i]}</td>
+      <td class="cell-locked" style="background:#e2e8f0;">${finalStart[i]}</td>
+    </tr>`;
+  }
+  html += `<tr class="summary-total-row">
+    <td style="text-align:right; padding-right:10px;">ИТОГО:</td>
+    <td>${grandA}</td>
+    <td>${grandE}</td>
+    <td>${grandS}</td>
+  </tr></tbody></table></div>`;
+  return html;
+}
+
+function buildGlobalSummaryHTML() {
+  const totalArr = Array(PRODUCT_COUNT).fill(0);
+  const totalExp = Array(PRODUCT_COUNT).fill(0);
+  const finalStart = Array(PRODUCT_COUNT).fill(0);
+
+  data.teachers.forEach(t => {
+    MONTHS.forEach(m => {
+      const p = t.months[m.name];
+      for (let i = 0; i < PRODUCT_COUNT; i++) {
+        totalArr[i] += sumArrivals(p, i);
+        totalExp[i] += getExpenses(p, i);
+      }
+    });
+    const lastMonth = t.months[MONTHS[MONTHS.length-1].name];
+    for (let i = 0; i < PRODUCT_COUNT; i++) {
+      finalStart[i] += (Number(lastMonth.start[i]) || 0) + sumArrivals(lastMonth, i) - getExpenses(lastMonth, i);
+    }
+  });
+
+  const grandA = totalArr.reduce((a,b)=>a+b,0);
+  const grandE = totalExp.reduce((a,b)=>a+b,0);
+  const grandS = finalStart.reduce((a,b)=>a+b,0);
+
+  let html = `<div class="summary-wrap">
+    <h2>🌐 Общая сводка по всем педагогам</h2>
+    <div class="period">Период: ${MONTHS[0].name} — ${MONTHS[MONTHS.length-1].name}</div>
+    
+    <h3 class="summary-section-title">1. По товарам за весь период (все педагоги)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th class="th-purple" rowspan="2" style="min-width:200px;">Товар</th>
+          <th class="th-purple" colspan="2">Всего за период</th>
+          <th class="th-purple" rowspan="2">Остаток<br>на конец<br>(31.08.2027)</th>
+        </tr>
+        <tr>
+          <th class="th-green">Общий приход</th>
+          <th class="th-orange">Общий расход</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    html += `<tr>
+      <td style="text-align:left; padding-left:10px; font-weight:500;">${i+1}. ${escapeHtml(data.productNames[i])}</td>
+      <td class="cell-blue" style="font-weight:bold;">${totalArr[i]}</td>
+      <td class="cell-orange">${totalExp[i]}</td>
+      <td class="cell-locked" style="background:#e2e8f0;">${finalStart[i]}</td>
+    </tr>`;
+  }
+  html += `<tr class="summary-total-row">
+    <td style="text-align:right; padding-right:10px;">ИТОГО по всем товарам:</td>
+    <td>${grandA}</td>
+    <td>${grandE}</td>
+    <td>${grandS}</td>
+  </tr></tbody></table>`;
+
+  html += `<h3 class="summary-section-title">2. По педагогам за весь период</h3>
+    <table>
+      <thead>
+        <tr>
+          <th class="th-purple" style="min-width:200px;">Педагог</th>
+          <th class="th-green">Общий приход</th>
+          <th class="th-orange">Общий расход</th>
+          <th class="th-purple">Остаток на конец</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  data.teachers.forEach((t, ti) => {
+    let tA = 0, tE = 0;
+    MONTHS.forEach(m => {
+      const p = t.months[m.name];
+      for (let i = 0; i < PRODUCT_COUNT; i++) {
+        tA += sumArrivals(p, i);
+        tE += getExpenses(p, i);
+      }
+    });
+    const lastMonth = t.months[MONTHS[MONTHS.length-1].name];
+    let tS = 0;
+    for (let i = 0; i < PRODUCT_COUNT; i++) {
+      tS += (Number(lastMonth.start[i]) || 0) + sumArrivals(lastMonth, i) - getExpenses(lastMonth, i);
+    }
+    html += `<tr>
+      <td style="text-align:left; padding-left:10px; font-weight:500;">${ti+1}. ${escapeHtml(t.name)}</td>
+      <td class="cell-blue" style="font-weight:bold;">${tA}</td>
+      <td class="cell-orange">${tE}</td>
+      <td class="cell-locked" style="background:#e2e8f0;">${tS}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+
+  html += `<h3 class="summary-section-title">3. По месяцам (все педагоги)</h3>
+    <table style="min-width:1900px; font-size:10px;">
+      <thead>
+        <tr>
+          <th class="th-purple" rowspan="2" style="min-width:120px;">Месяц</th>
+          ${Array.from({length: PRODUCT_COUNT}, (_, i) => 
+            `<th class="th-purple" colspan="2" style="font-size:10px; padding:2px;">${i+1}. ${escapeHtml(data.productNames[i])}</th>`).join('')}
+        </tr>
+        <tr>
+          ${Array.from({length: PRODUCT_COUNT}, () => 
+            `<th class="th-green" style="font-size:9px; padding:2px;">Пр</th><th class="th-orange" style="font-size:9px; padding:2px;">Рс</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>`;
+  
+  const monthTotalsArr = Array(PRODUCT_COUNT).fill(0);
+  const monthTotalsExp = Array(PRODUCT_COUNT).fill(0);
+  
+  MONTHS.forEach(m => {
+    const arr = Array(PRODUCT_COUNT).fill(0);
+    const exp = Array(PRODUCT_COUNT).fill(0);
+    data.teachers.forEach(t => {
+      const p = t.months[m.name];
+      for (let i = 0; i < PRODUCT_COUNT; i++) {
+        arr[i] += sumArrivals(p, i);
+        exp[i] += getExpenses(p, i);
+        monthTotalsArr[i] += sumArrivals(p, i);
+        monthTotalsExp[i] += getExpenses(p, i);
+      }
+    });
+    html += `<tr>
+      <td class="row-label" style="text-align:left; padding-left:10px;">${m.name}</td>`;
+    for (let i = 0; i < PRODUCT_COUNT; i++) {
+      html += `<td class="cell-blue" style="font-size:10px;">${arr[i]}</td>
+               <td class="cell-orange" style="font-size:10px;">${exp[i]}</td>`;
+    }
+    html += `</tr>`;
+  });
+  
+  html += `<tr class="summary-total-row">
+    <td style="text-align:right; padding-right:10px;">ИТОГО:</td>`;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    html += `<td>${monthTotalsArr[i]}</td><td>${monthTotalsExp[i]}</td>`;
+  }
+  html += `</tr>`;
+
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+function getPrevDateStr(mi) {
+  if (mi === 0) return "01.11.2026 (начало)";
+  return MONTHS[mi-1].endDate;
+}
+function getNextDateStr(mi) {
+  if (mi === MONTHS.length - 1) return "31.08.2027 (конец)";
+  return MONTHS[mi].endDate;
+}
+
+function updateArrivalDate(tIdx, monthName, rIdx, val) {
+  const clean = (val || '').replace(/[^0-9.]/g, '').slice(0, 10);
+  data.teachers[tIdx].months[monthName].arrivals[rIdx].date = clean;
+  saveData();
+}
+
+function updateStudentDate(tIdx, monthName, sIdx, val) {
+  const clean = (val || '').replace(/[^0-9.]/g, '').slice(0, 10);
+  data.teachers[tIdx].months[monthName].students[sIdx].date = clean;
+  saveData();
+}
+
+function updateArrivalItem(tIdx, monthName, rIdx, iIdx, val) {
+  data.teachers[tIdx].months[monthName].arrivals[rIdx].items[iIdx] = Math.max(0, Number(val) || 0);
+  recalcAllStarts();
+  renderContent();
+}
+
+function updateStudentName(tIdx, monthName, sIdx, val) {
+  data.teachers[tIdx].months[monthName].students[sIdx].name = (val || '').replace(/[0-9]/g, '');
+  saveData();
+}
+
+function updateStudentItem(tIdx, monthName, sIdx, iIdx, val) {
+  data.teachers[tIdx].months[monthName].students[sIdx].items[iIdx] = Math.max(0, Number(val) || 0);
+  recalcAllStarts();
+  renderContent();
+}
+
+function exportBackup() {
+  const backup = {
+    city: loadCity(),
+    data: data,
+    exportedAt: new Date().toLocaleString('ru-RU')
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  const dateStr = new Date().toISOString().slice(0,10);
+  link.download = `учет_товаров_10_педагогов_${dateStr}.json`;
+  link.click();
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!confirm("Загрузить резервную копию? Текущие данные будут заменены.")) {
+    event.target.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.data || !backup.data.teachers) throw new Error("Неверный формат файла");
+      data = backup.data;
+      while (data.teachers.length < TEACHER_COUNT) {
+        data.teachers.push(createEmptyTeacher(data.teachers.length));
+      }
+      if (data.teachers.length > TEACHER_COUNT) {
+        data.teachers = data.teachers.slice(0, TEACHER_COUNT);
+      }
+      data.teachers.forEach((t, idx) => {
+        if (!t.name) t.name = `Педагог ${idx + 1}`;
+        if (!t.months) t.months = {};
+        MONTHS.forEach(m => {
+          if (!t.months[m.name] || !t.months[m.name].start || t.months[m.name].start.length !== PRODUCT_COUNT) {
+            t.months[m.name] = createEmptyMonth();
+          } else {
+            if (!t.months[m.name].arrivals || t.months[m.name].arrivals.length === 0) {
+              t.months[m.name].arrivals = Array.from({length: DEFAULT_ARRIVAL_ROWS}, () => ({ date: "", items: Array(PRODUCT_COUNT).fill(0) }));
+            }
+            if (!t.months[m.name].students || t.months[m.name].students.length === 0) {
+              t.months[m.name].students = Array.from({length: DEFAULT_STUDENT_ROWS}, () => ({ name: "", date: "", items: Array(PRODUCT_COUNT).fill(0) }));
+            }
+          }
+        });
+      });
+      if (!data.productNames || data.productNames.length !== PRODUCT_COUNT) {
+        data.productNames = DEFAULT_PRODUCT_NAMES.slice();
+      }
+      if (backup.city) {
+        localStorage.setItem("products_city_10", backup.city);
+        document.getElementById("cityInput").value = backup.city;
+      }
+      saveData();
+      recalcAllStarts();
+      renderTeacherTabs();
+      renderMonthTabs();
+      renderContent();
+      alert("✅ Резервная копия успешно загружена!");
+    } catch(err) {
+      alert("❌ Ошибка загрузки: " + err.message);
+    }
+    event.target.value = "";
+  };
+  reader.readAsText(file);
+}
+
+function exportCSV() {
+  let csv = "=== УЧЕТ ТОВАРОВ ПО ПЕДАГОГАМ ===\n\n";
+  csv += "Товары: " + data.productNames.join("; ") + "\n\n";
+
+  data.teachers.forEach((t, ti) => {
+    csv += `\n--- Педагог: ${t.name} ---\n`;
+    csv += "Месяц;Показатель;" + data.productNames.join(";") + "\n";
+    MONTHS.forEach(m => {
+      const p = t.months[m.name];
+      csv += `${m.name};Остаток на начало;${p.start.join(';')}\n`;
+      p.arrivals.forEach((row, r) => {
+        const ds = row.date ? ` (${row.date})` : '';
+        csv += `${m.name};Приход ${r+1}${ds};${row.items.join(';')}\n`;
+      });
+      const totals = data.productNames.map((_, i) => sumArrivals(p, i));
+      csv += `${m.name};Итого приход;${totals.join(';')}\n`;
+      p.students.forEach(s => {
+        if (s.name || s.items.some(q => q > 0)) {
+          const ds = s.date ? ` (${s.date})` : '';
+          csv += `${m.name};${s.name || 'Ученик'}${ds};${s.items.join(';')}\n`;
+        }
+      });
+      const expTotals = data.productNames.map((_, i) => getExpenses(p, i));
+      csv += `${m.name};Расход за месяц;${expTotals.join(';')}\n`;
+      const end = data.productNames.map((_, i) => p.start[i] + sumArrivals(p, i) - getExpenses(p, i));
+      csv += `${m.name};Остаток на конец;${end.join(';')}\n\n`;
+    });
+  });
+
+  csv += "\n=== ОБЩАЯ СВОДКА ПО ВСЕМ ПЕДАГОГАМ ===\n";
+  csv += "Товар;Общий приход;Общий расход;Остаток на конец\n";
+  let gA = 0, gE = 0, gS = 0;
+  for (let i = 0; i < PRODUCT_COUNT; i++) {
+    let tA = 0, tE = 0, tS = 0;
+    data.teachers.forEach(t => {
+      MONTHS.forEach(m => {
+        tA += sumArrivals(t.months[m.name], i);
+        tE += getExpenses(t.months[m.name], i);
+      });
+      const lm = t.months[MONTHS[MONTHS.length-1].name];
+      tS += lm.start[i] + sumArrivals(lm, i) - getExpenses(lm, i);
+    });
+    gA += tA; gE += tE; gS += tS;
+    csv += `${data.productNames[i]};${tA};${tE};${tS}\n`;
+  }
+  csv += `ИТОГО;${gA};${gE};${gS}\n`;
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `учет_товаров_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+}
+
+function printTable() { window.print(); }
+
+function confirmClearAll() {
+  const input = prompt("⚠️ ВНИМАНИЕ! Это удалит ВСЕ данные за 10 месяцев по всем 10 педагогам.\n\nВведите пароль для подтверждения:");
+  if (input === null) return;
+  if (input === CLEAR_PASSWORD) {
+    if (!confirm("Пароль верный. Точно удалить ВСЕ данные? Это действие НЕОБРАТИМО.")) return;
+    data = createEmptyData();
+    saveData();
+    localStorage.removeItem("products_city_10");
+    document.getElementById("cityInput").value = "";
+    renderTeacherTabs();
+    renderMonthTabs();
+    renderContent();
+    alert("✅ Все данные успешно удалены.");
+  } else {
+    alert("❌ Неверный пароль! Данные не были удалены.");
+  }
+}
+
+document.getElementById("cityInput").value = loadCity();
+recalcAllStarts();
+renderTeacherTabs();
+renderMonthTabs();
+renderContent();
+
+window.addEventListener('beforeunload', () => saveData(false));
+</script>
+
+</body>
+</html>
